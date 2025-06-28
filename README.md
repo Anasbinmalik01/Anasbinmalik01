@@ -88,7 +88,7 @@
     <h2>Contact Us</h2>
     <p><strong>Address:</strong> No. 55 Vekila Viniklang, Modire Ward, Girei LGA, Adamawa State, Nigeria</p>
     <p><strong>Email:</strong> info@globalcitysystemltd.net</p>
-    <p><strong>Phone:</strong> +234 xxx xxx xxxx</p>
+    <p><strong>Phone:</strong> +234 81033 1656</p>
     <p><strong>Hours:</strong> Mon–Fri: 8 AM–8 PM | Sat–Sun: 9 AM–6 PM</p>
   </section>  <footer>
     <p>&copy; 2025 Global City System Limited. All rights reserved.</p>
