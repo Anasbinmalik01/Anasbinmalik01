@@ -1,0 +1,74 @@
+# Company Information
+company_name = "Global City System Limited"
+rc_number = "1733567"
+tin_number = "1056077686"
+company_address = "55, 55 VLKAA Viniklang, Modire Ward, Girei LGA, Adamawa State, ZIP Code: 640102"
+ceo_name = "Mohammed Anas Garba"
+ceo_email = "anasmohammedgarba@gmail.com"
+ceo_phone = "+234 810 338 1656"
+
+# Subject
+email_subject = f"Update on KYB Partnership Application Status :{company_name} (RC: {rc_number})"
+
+# Recipients
+recipients = ["Sidra Club", "Sidra Chain", "Sidra Bank Management"]
+
+# Greeting
+greeting = "Warm greetings."
+
+# Email Body Sections
+introduction = (
+    f"We are writing on behalf of {company_name}, RC No: {rc_number}, with registered office at {company_address}."
+)
+
+status_acknowledgement = (
+    "We acknowledge the recent status update regarding KYB Partnership applications. "
+    "While we understand that several applications have unfortunately been declined, "
+    f"we are encouraged to see that the status of {company_name}’s KYB Partnership application has transitioned from “Pending” to “In Review.”"
+)
+
+appreciation_and_compliance = (
+    "We take this as a positive indication of progress and wish to express our appreciation for the continued consideration of our application. "
+    f"Our company is fully compliant, with a valid Tax Identification Number: {tin_number}, and remains committed to meeting all operational and regulatory "
+    "standards required by Sidra Club, Sidra Chain, and Sidra Bank."
+)
+
+cooperation_offer = (
+    "Should there be any further documentation, clarification, or engagement required from our end to assist in the ongoing review process, "
+    "please do not hesitate to reach out. We are fully prepared and available to cooperate."
+)
+
+conclusion = (
+    "We respectfully look forward to the successful conclusion of the review and a future of mutual collaboration."
+)
+
+closing = "Thank you for your attention and professional engagement."
+
+signature = f"""
+Yours faithfully,
+{ceo_name}
+Chief Executive Officer
+{company_name}
+RC: {rc_number}
+TIN: {tin_number}
+Email: {ceo_email}
+Phone: {ceo_phone}
+"""
+
+# Combine all into final message
+email_body = (
+    f"Dear {', '.join(recipients)},\n\n"
+    f"{greeting}\n\n"
+    f"{introduction}\n\n"
+    f"{status_acknowledgement}\n\n"
+    f"{appreciation_and_compliance}\n\n"
+    f"{cooperation_offer}\n\n"
+    f"{conclusion}\n\n"
+    f"{closing}\n"
+    f"{signature}"
+)
+
+# Print to view the result
+print("Subject:", email_subject)
+print("\n--- EMAIL BODY ---\n")
+print(email_body)
