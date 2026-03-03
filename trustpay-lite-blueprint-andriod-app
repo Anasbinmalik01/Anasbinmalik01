@@ -1,0 +1,814 @@
+FIREBASE INITIALIZATION
+Create file:
+js/firebase.js
+Paste your Firebase config:
+
+// js/firebase.js
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+Important: In every HTML file using JS, add:
+
+<script type="module" src="js/yourfile.js"></script>
+
+FIRESTORE SECURITY RULES
+Go to Firestore → Rules → Replace with:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // USERS COLLECTION
+    match /users/{userId} {
+      allow read, write: if request.auth != null 
+                         && request.auth.uid == userId;
+    }
+
+    // RECEIPTS COLLECTION
+    match /receipts/{receiptId} {
+
+      // Merchant can create receipt
+      allow create: if request.auth != null;
+
+      // Merchant can read their own receipts
+      allow read: if request.auth != null 
+                  && request.auth.uid == resource.data.merchantId;
+
+      // Public verification allowed ONLY for receiptCode queries
+      allow list: if true;
+
+      allow get: if true;
+    }
+  }
+}
+
+RECEIPT CODE GENERATOR
+Create function inside:
+js/receipt.js
+
+function generateReceiptCode() {
+  const randomNumber = Math.floor(10000 + Math.random() * 90000);
+  return "TPL-" + randomNumber;
+}
+
+CREATE RECEIPT LOGIC
+Inside js/receipt.js:
+
+import { db, auth } from "./firebase.js";
+import { collection, addDoc, serverTimestamp } 
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const form = document.getElementById("receiptForm");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Not logged in");
+    return;
+  }
+
+  const customerName = document.getElementById("customerName").value;
+  const itemDescription = document.getElementById("itemDescription").value;
+  const amount = parseFloat(document.getElementById("amount").value);
+
+  const receiptCode = generateReceiptCode();
+
+  try {
+    await addDoc(collection(db, "receipts"), {
+      merchantId: user.uid,
+      businessName: user.displayName || "Merchant",
+      customerName,
+      itemDescription,
+      amount,
+      receiptCode,
+      date: new Date(),
+      createdAt: serverTimestamp()
+    });
+
+    alert("Receipt Created Successfully!");
+    window.location.href = "dashboard.html";
+
+  } catch (error) {
+    console.error(error);
+    alert("Error creating receipt");
+  }
+});
+
+FETCH RECEIPTS (DASHBOARD)
+Create:
+js/dashboard.js
+
+import { db, auth } from "./firebase.js";
+import { collection, query, where, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const q = query(
+    collection(db, "receipts"),
+    where("merchantId", "==", user.uid)
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  const tableBody = document.getElementById("receiptTableBody");
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+
+    const row = `
+      <tr>
+        <td>${data.receiptCode}</td>
+        <td>${data.customerName}</td>
+        <td>₦${data.amount}</td>
+        <td>${new Date(data.date.seconds * 1000).toLocaleDateString()}</td>
+      </tr>
+    `;
+
+    tableBody.innerHTML += row;
+  });
+});
+
+Make sure dashboard.html has:
+
+<tbody id="receiptTableBody"></tbody>
+
+VERIFY RECEIPT LOGIC
+Create:
+js/verify.js
+
+import { db } from "./firebase.js";
+import { collection, query, where, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const verifyBtn = document.getElementById("verifyBtn");
+
+verifyBtn.addEventListener("click", async () => {
+
+  const code = document.getElementById("receiptCodeInput").value;
+
+  const q = query(
+    collection(db, "receipts"),
+    where("receiptCode", "==", code)
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  const resultDiv = document.getElementById("result");
+
+  if (querySnapshot.empty) {
+    resultDiv.innerHTML = "<h3 style='color:red;'>x Invalid Receipt</h3>";
+  } else {
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+
+      resultDiv.innerHTML = `
+        <h3 style="color:green;">✓ Verified Receipt</h3>
+        <p><strong>Business:</strong> ${data.businessName}</p>
+        <p><strong>Customer:</strong> ${data.customerName}</p>
+        <p><strong>Item:</strong> ${data.itemDescription}</p>
+        <p><strong>Amount:</strong> ₦${data.amount}</p>
+      `;
+    });
+  }
+});
+
+QR CODE GENERATION
+Inside create receipt page after saving:
+Add CDN in HTML:
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+Generate QR:
+
+new QRCode(document.getElementById("qrcode"), {
+  text: "https://yourdomain.web.app/verify.html?code=" + receiptCode,
+  width: 128,
+  height: 128
+});
+
+Add in HTML:
+
+<div id="qrcode"></div>
+
+FINAL DEPLOYMENT
+In project folder:
+
+firebase init
+firebase deploy
+
+STEP 1: FIREBASE SETUP
+
+Go to Firebase Console
+Create New Project → Name: trustpay-lite
+Enable:
+Authentication → Email/Password
+Firestore Database
+Hosting
+Get your Firebase config keys from: Project Settings → Web App → Config snippet
+You will paste that into your firebase.js.
+
+STEP 2: FIRESTORE DATABASE STRUCTURE
+We keep it clean and scalable.
+You will have TWO main collections:
+users (collection)
+Each document ID = user UID from Firebase Auth
+Structure:
+users
+└── userUID
+├── fullName: string
+├── businessName: string
+├── phone: string
+├── createdAt: timestamp
+Example:
+users └── AbC123UID fullName: "Anas Garba" businessName: "Anas Electronics" phone: "080xxxxxxx" createdAt: 2026-03-02
+
+ receipts (collection)
+Each document = one transaction
+Structure:
+receipts
+└── receiptID (auto generated or custom ID) ├── merchantId: userUID ├── businessName: string ├── customerName: string ├── itemDescription: string ├── amount: number ├── date: timestamp ├── receiptCode: string (unique short ID) ├── createdAt: timestamp
+Example:
+receipts └── xYz789 merchantId: AbC123UID businessName: "Anas Electronics" customerName: "Musa" itemDescription: "Phone Charger" amount: 4500 date: 2026-03-02 receiptCode: "TPL-83921" createdAt: timestamp
+
+IMPORTANT
+receiptCode is what customers will use to verify.
+Example format generator:
+TPL + random 5 digits
+Example: TPL-48291
+That is what appears on receipt + QR code.
+
+STEP 3: PROJECT FOLDER STRUCTURE
+Keep it simple.
+trustpay-lite/ │ ├── index.html (Landing Page) ├── login.html ├── register.html ├── dashboard.html ├── create-receipt.html ├── verify.html │ ├── css/ │     └── style.css │ ├── js/ │     ├── firebase.js │     ├── auth.js │     ├── dashboard.js │     ├── receipt.js │     └── verify.js │ └── assets/ └── logo.png
+
+STEP 4: UI PAGE STRUCTURE
+Now I’ll tell you exactly what each page must contain.
+
+index.html (Landing Page)
+Purpose: Explain what TrustPay Lite does.
+Sections:
+Logo + Title
+Short description
+"Login" button
+"Register" button
+Short feature list: ✓ Generate Digital Receipts
+✓ QR Code Verification
+✓ Transaction History
+Keep it clean and minimal.
+
+ register.html
+Form fields:
+Full Name
+Business Name
+Phone
+Email
+Password
+Register button
+On submit:
+Create user with Firebase Auth
+Save user details in Firestore under users collection
+Redirect to dashboard.html
+
+ login.html
+Fields:
+Email
+Password
+Login button
+On success → Redirect to dashboard.html
+
+dashboard.html
+This is the most important page.
+Sections:
+Header: "Welcome, Business Name"
+Buttons:  Create New Receipt
+ Verify Receipt
+  Logout
+Below: Transaction History Table
+Columns: Receipt Code | Customer | Amount | Date
+Fetch receipts where: merchantId == currentUser.uid
+
+ create-receipt.html
+Form Fields:
+Customer Name
+Item Description
+Amount
+Button: "Generate Receipt"
+On click:
+Generate receiptCode (TPL-xxxxx)
+Save receipt to Firestore
+Generate QR Code that links to:
+yourdomain.com/verify.html?code=TPL-xxxxx
+After saving:
+Show receipt preview:
+Business Name
+Customer
+Item
+Amount
+Receipt Code
+QR Code
+Add: "Back to Dashboard" button
+
+verify.html
+This page works for everyone (no login required).
+It has:
+Input Field: Enter Receipt Code
+Button: Verify
+OR
+Auto-read from URL parameter:
+verify.html?code=TPL-83921
+Logic:
+Search Firestore: where receiptCode == enteredCode
+
+If found: Show:
+✓  Verified Receipt
+Business Name
+Customer Name
+Item
+Amount
+Date
+If not found: x Invalid Receipt
+
+UI/UX DESIGN 
+DESIGN SYSTEM
+Color Palette (Professional & Calm)
+Primary: #2563EB (modern blue)
+Dark: #111827
+Gray Text: #6B7280
+Light Background: #F9FAFB
+Card Background: #FFFFFF
+Success: #16A34A
+Error: #DC2626
+Google Font (Very Important)
+Add in <head> of every page:
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+Inter font = startup vibe.
+
+APP LAYOUT STRUCTURE (Professional Dashboard Style)
+We use:
+Sidebar (left)
+Topbar (top)
+Main content area
+Dashboard Layout HTML Structure
+
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2 class="logo">TruePrint</h2>
+
+    <nav>
+      <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="create.html" class="nav-link">Create Receipt</a>
+      <a href="verify.html" class="nav-link">Verify</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <h1>Dashboard</h1>
+      <button class="logout-btn">Logout</button>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <section class="content">
+      <!-- Your dashboard table here -->
+    </section>
+
+  </div>
+</div>
+
+</body>
+
+PROFESSIONAL CSS (Copy Everything)
+Create:
+css/style.css
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #F9FAFB;
+  color: #111827;
+}
+
+/* Layout */
+
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 240px;
+  background: #111827;
+  color: white;
+  padding: 30px 20px;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 40px;
+}
+
+.nav-link {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #D1D5DB;
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: 0.3s;
+}
+
+.nav-link:hover {
+  background: #1F2937;
+  color: white;
+}
+
+.nav-link.active {
+  background: #2563EB;
+  color: white;
+}
+
+/* Main */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topbar */
+
+.topbar {
+  background: white;
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.topbar h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.logout-btn {
+  padding: 8px 14px;
+  border: none;
+  background: #DC2626;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Content */
+
+.content {
+  padding: 30px;
+  overflow-y: auto;
+}
+
+/* Cards */
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+
+/* Table */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  padding: 12px;
+  background: #F3F4F6;
+  font-weight: 600;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+/* Forms */
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #D1D5DB;
+  font-size: 14px;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #2563EB;
+}
+
+.primary-btn {
+  background: #2563EB;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.primary-btn:hover {
+  opacity: 0.9;
+}
+
+/* Verify Result */
+
+.success {
+  color: #16A34A;
+  font-weight: 600;
+}
+
+.error {
+  color: #DC2626;
+  font-weight: 600;
+}
+
+CREATE RECEIPT PAGE UI
+Inside content section:
+
+<div class="card">
+  <h2>Create Receipt</h2>
+
+  <form id="receiptForm">
+    <div class="form-group">
+      <label>Customer Name</label>
+      <input type="text" id="customerName" required>
+    </div>
+
+    <div class="form-group">
+      <label>Item Description</label>
+      <textarea id="itemDescription" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Amount</label>
+      <input type="number" id="amount" required>
+    </div>
+
+    <button type="submit" class="primary-btn">
+      Generate Receipt
+    </button>
+  </form>
+</div>
+
+Clean. Minimal. Professional.
+ VERIFY PAGE (Public Facing — Clean Landing Style)
+No sidebar here. Make it centered.
+
+<body>
+
+<div class="verify-container">
+
+  <div class="verify-card">
+    <h1>Verify Receipt</h1>
+
+    <input type="text" id="receiptCodeInput" placeholder="Enter receipt code">
+
+    <button id="verifyBtn" class="primary-btn">
+      Verify
+    </button>
+
+    <div id="result" style="margin-top:20px;"></div>
+
+  </div>
+
+</div>
+
+</body>
+
+Add CSS:
+
+.verify-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.verify-card {
+  background: white;
+  padding: 40px;
+  width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  text-align: center;
+}
+
+READ.md 
+
+TrustPay Lite
+
+Digital Receipt and Micro Business Verification System for Informal SMEs in Adamawa State
+
+Project Overview
+
+TrustPay Lite is a lightweight digital receipt and transaction verification platform designed to support informal small and medium enterprises in Adamawa State, Nigeria.
+
+Thousands of market traders, POS agents, freelancers, and small shop owners operate without reliable digital transaction records. Paper receipts are easily lost, altered, or disputed. This prevents access to financial services and limits economic growth.
+
+TrustPay Lite enables merchants to generate secure digital receipts with unique IDs and QR codes while building a basic transaction history that supports financial inclusion.
+
+Impact Pillar: Financial Inclusion
+
+Problem Statement
+
+In Yola markets and across Adamawa State:
+
+• Transactions are mostly verbal or paper based
+• Receipts can be lost or manipulated
+• Merchants lack reliable income history
+• Financial institutions cannot assess informal traders
+• Small businesses struggle to access loans and grants
+
+Trust and documentation gaps continue to exclude informal SMEs from the digital economy.
+
+Solution
+
+TrustPay Lite provides:
+
+• Merchant registration and login
+• Secure transaction recording
+• Automatic digital receipt generation
+• Unique receipt ID for each transaction
+• QR code attached to every receipt
+• Public verification page to confirm authenticity
+• Merchant dashboard with transaction history
+
+The system increases transparency, reduces disputes, and builds verifiable digital records.
+
+Technology Stack
+
+Frontend
+HTML
+CSS
+JavaScript
+
+Backend and Infrastructure
+Firebase Authentication
+Firebase Firestore
+Firebase Hosting
+
+Platform powered by Firebase
+
+Android version designed for development using Android Studio with Kotlin and MVVM architecture.
+
+QR Code Generation
+JavaScript QR library
+
+Future Blockchain Layer
+Planned integration with Ethereum testnet for receipt hash anchoring.
+
+System Architecture
+
+Merchant logs in
+Transaction details entered
+System generates unique receipt ID
+QR code created and attached
+Transaction stored in Firestore
+Customer verifies via receipt ID or QR scan
+
+Core MVP Features
+
+• Merchant Registration and Login
+• Transaction Entry Form
+• Unique Receipt ID Generation
+• QR Code Generation
+• Public Receipt Verification Page
+• Merchant Dashboard
+
+Impact
+
+Short Term Impact
+
+• Reduces payment disputes
+• Improves customer trust
+• Encourages digital record keeping
+• Introduces traders to digital tools
+
+Medium to Long Term Impact
+
+• Builds transaction history
+• Supports credit eligibility
+• Enables integration with microfinance institutions
+• Strengthens grassroots financial inclusion
+
+Scalability Roadmap
+
+Phase 1
+Pilot deployment in Yola markets
+
+Phase 2
+Expansion across Adamawa State with Hausa and English interface
+
+Phase 3
+Partnership with microfinance institutions and cooperatives
+
+Phase 4
+Blockchain integration for enhanced immutability and national deployment
+
+Cloud based architecture ensures low infrastructure cost and high scalability.
+
+Target Users
+
+Primary Users
+Market traders
+Small shop owners
+POS agents
+Freelancers
+Micro entrepreneurs
+
+Secondary Users
+Customers
+Microfinance institutions
+Cooperative societies
+Community lending groups
+
+Learning Application
+
+This project applies skills developed through the 3MTT foundational program, including:
+
+• Digital product design
+• Problem identification
+• Cloud infrastructure deployment
+• MVP development
+• Practical implementation of financial inclusion solutions
+
+TrustPay Lite demonstrates applied knowledge beyond theory and showcases proof of work.
+
+AI Tool Disclosure
+
+Portions of the documentation and structuring were supported using AI tools for clarity and refinement. All system design decisions, customization, and implementation planning were independently executed.
+
+Author
+
+Anas Mohammed Garba
+3MTT NextGen Fellow
+Deeptech ID
+FE/23/83451600
+Adamawa State, 
+Nigeria.
