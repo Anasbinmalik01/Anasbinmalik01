@@ -1,97 +1,147 @@
-<!DOCTYPE html><html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Global City System Limited - ICT, Computer Training, Internet Access, Printing Services in Adamawa, Nigeria" />
-  <title>Global City System Limited</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background-color: #f4f8fb;
-      color: #333;
-    }
-    header {
-      background-color: #0077b6;
-      color: #fff;
-      padding: 20px;
-      text-align: center;
-    }
-    header img {
-      height: 80px;
-    }
-    nav {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin: 10px 0;
-    }
-    nav a {
-      color: #0077b6;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    section {
-      padding: 30px;
-      max-width: 1000px;
-      margin: auto;
-    }
-    section h2 {
-      color: #0077b6;
-    }
-    footer {
-      background: #00334e;
-      color: white;
-      text-align: center;
-      padding: 15px 10px;
-    }
-    .services ul {
-      list-style: none;
-      padding: 0;
-    }
-    .services li {
-      background: #e7f1f8;
-      margin: 8px 0;
-      padding: 10px;
-      border-radius: 5px;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <img src="logo.png" alt="Global City System Limited Logo" />
-    <h1>Global City System Limited</h1>
-    <p>Bridging the Digital Divide in Adamawa State</p>
-  </header>  <nav>
-    <a href="#about">About</a>
-    <a href="#services">Services</a>
-    <a href="#vision">Vision & Mission</a>
-    <a href="#contact">Contact</a>
-  </nav>  <section id="about">
-    <h2>About Us</h2>
-    <p>Founded in 2019 and incorporated in 2020, Global City System Limited is a government-approved ICT center in Girei, Adamawa State. We provide affordable digital services such as Internet access, printing, scanning, computer training and freelance workstation services. Our goal is to empower underserved communities with digital skills and reliable ICT access.</p>
-  </section>  <section id="services" class="services">
-    <h2>Our Services</h2>
-    <ul>
-      <li>High-Speed Internet Access</li>
-      <li>Printing, Scanning & Photocopying (A4/A3)</li>
-      <li>Computer Training (Basic to Intermediate)</li>
-      <li>Freelance Online Workstation</li>
-      <li>Graphic and Web Design (Basic)</li>
-    </ul>
-  </section>  <section id="vision">
-    <h2>Vision & Mission</h2>
-    <p><strong>Vision:</strong> To be the most trusted cyber café and ICT training center in Adamawa State.</p>
-    <p><strong>Mission:</strong> To deliver affordable and accessible computer-based services and training for students, youth, and small businesses in our region.</p>
-  </section>  <section id="contact">
-    <h2>Contact Us</h2>
-    <p><strong>Address:</strong> No. 55 Vekila Viniklang, Modire Ward, Girei LGA, Adamawa State, Nigeria</p>
-    <p><strong>Email:</strong> info@globalcitysystemltd.net</p>
-    <p><strong>Phone:</strong> +234 81033 1656</p>
-    <p><strong>Hours:</strong> Mon–Fri: 8 AM–8 PM | Sat–Sun: 9 AM–6 PM</p>
-  </section>  <footer>
-    <p>&copy; 2025 Global City System Limited. All rights reserved.</p>
-  </footer>
-</body>
-</html>
+# TrustPay Lite
+
+Digital Receipt and Micro Business Verification System for Informal SMEs in Adamawa State
+
+## Project Overview
+
+TrustPay Lite is a lightweight digital receipt and transaction verification platform designed to support informal small and medium enterprises in Adamawa State, Nigeria.
+
+Thousands of market traders, POS agents, freelancers, and small shop owners operate without reliable digital transaction records. Paper receipts are easily lost, altered, or disputed. This prevents access to financial services and limits economic growth.
+
+TrustPay Lite enables merchants to generate secure digital receipts with unique IDs and QR codes while building a basic transaction history that supports financial inclusion.
+
+**Impact Pillar:** Financial Inclusion
+
+## Problem Statement
+
+In Yola markets and across Adamawa State:
+
+- Transactions are mostly verbal or paper based
+- Receipts can be lost or manipulated
+- Merchants lack reliable income history
+- Financial institutions cannot assess informal traders
+- Small businesses struggle to access loans and grants
+
+Trust and documentation gaps continue to exclude informal SMEs from the digital economy.
+
+## Solution
+
+TrustPay Lite provides:
+
+- Merchant registration and login
+- Secure transaction recording
+- Automatic digital receipt generation
+- Unique receipt ID for each transaction
+- QR code attached to every receipt
+- Public verification page to confirm authenticity
+- Merchant dashboard with transaction history
+
+The system increases transparency, reduces disputes, and builds verifiable digital records.
+
+## Technology Stack
+
+### Frontend
+- HTML
+- CSS
+- JavaScript
+
+### Backend and Infrastructure
+- Firebase Authentication
+- Firebase Firestore
+- Firebase Hosting
+
+**Platform powered by Firebase**
+
+Android version designed for development using Android Studio with Kotlin and MVVM architecture.
+
+### QR Code Generation
+- JavaScript QR library
+
+### Future Blockchain Layer
+Planned integration with Ethereum testnet for receipt hash anchoring.
+
+## System Architecture
+
+1. Merchant logs in
+2. Transaction details entered
+3. System generates unique receipt ID
+4. QR code created and attached
+5. Transaction stored in Firestore
+6. Customer verifies via receipt ID or QR scan
+
+## Core MVP Features
+
+- ✅ Merchant Registration and Login
+- ✅ Transaction Entry Form
+- ✅ Unique Receipt ID Generation
+- ✅ QR Code Generation
+- ✅ Public Receipt Verification Page
+- ✅ Merchant Dashboard
+
+## Impact
+
+### Short Term Impact
+- Reduces payment disputes
+- Improves customer trust
+- Encourages digital record keeping
+- Introduces traders to digital tools
+
+### Medium to Long Term Impact
+- Builds transaction history
+- Supports credit eligibility
+- Enables integration with microfinance institutions
+- Strengthens grassroots financial inclusion
+
+## Scalability Roadmap
+
+### Phase 1
+Pilot deployment in Yola markets
+
+### Phase 2
+Expansion across Adamawa State with Hausa and English interface
+
+### Phase 3
+Partnership with microfinance institutions and cooperatives
+
+### Phase 4
+Blockchain integration for enhanced immutability and national deployment
+
+Cloud based architecture ensures low infrastructure cost and high scalability.
+
+## Target Users
+
+### Primary Users
+- Market traders
+- Small shop owners
+- POS agents
+- Freelancers
+- Micro entrepreneurs
+
+### Secondary Users
+- Customers
+- Microfinance institutions
+- Cooperative societies
+- Community lending groups
+
+## Learning Application
+
+This project applies skills developed through the 3MTT foundational program, including:
+
+- Digital product design
+- Problem identification
+- Cloud infrastructure deployment
+- MVP development
+- Practical implementation of financial inclusion solutions
+
+TrustPay Lite demonstrates applied knowledge beyond theory and showcases proof of work.
+
+## AI Tool Disclosure
+
+Portions of the documentation and structuring were supported using AI tools for clarity and refinement. All system design decisions, customization, and implementation planning were independently executed.
+
+## Author
+
+**Anas Mohammed Garba**
+- 3MTT NextGen Fellow
+- Deeptech ID: FE/23/83451600
+- Adamawa State, Nigeria
